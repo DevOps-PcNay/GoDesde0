@@ -5,10 +5,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/DevOps-PcNay/Twitter-GoLand/AwsGo"
+	"github.com/DevOps-PcNay/Twitter-GoLand/Models"
 	"github.com/DevOps-PcNay/Twitter-GoLand/Secretmanager"
 	"github.com/aws/aws-lambda-go/events"
 	lambda "github.com/aws/aws-lambda-go/lambda"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -40,6 +42,7 @@ func EjecutoLambda(ctx context.Context, request events.APIGatewayProxyRequest) (
 	} // if !ValidoParametros() {
 
 	// "SecretName" = Variable de entorno.
+	// "SecretName" = Aun no se crea la variable de Entorno, se creara en una archivo y se agregara al proyecto.
 	SecretModel, err := Secretmanager.GetSecret(os.Getenv("SecretName"))
 
 	// Como buena practica es validar si hubo error, ya que si se colocan instrucciones antes, se pierde el seguimiento de los errores.
@@ -56,6 +59,21 @@ func EjecutoLambda(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return res, nil
 
 	} // if err != nil {
+
+	// -1 = Que inicie la busqueda desde el inicio de la cadena.
+	// Quitar en la url "twitterGo/",. que le quite "twitterGo"
+
+	path := strings.Replace(request.PathParameters["twitterGo"], os.Getenv(("urlPrefix")), "", -1)
+
+	AwsGo.Ctx = context.WithValue(AwsGo.Ctx, Models.Key("path"), path)
+	AwsGo.Ctx = context.WithValue(AwsGo.Ctx, Models.Key("method"), request.HTTPMethod)
+	AwsGo.Ctx = context.WithValue(AwsGo.Ctx, Models.Key("user"), SecretModel.Username)
+	AwsGo.Ctx = context.WithValue(AwsGo.Ctx, Models.Key("password"), SecretModel.Password)
+	AwsGo.Ctx = context.WithValue(AwsGo.Ctx, Models.Key("host"), SecretModel.Host)
+	AwsGo.Ctx = context.WithValue(AwsGo.Ctx, Models.Key("database"), SecretModel.Database)
+	AwsGo.Ctx = context.WithValue(AwsGo.Ctx, Models.Key("jwt"), SecretModel.JWTSign)
+	AwsGo.Ctx = context.WithValue(AwsGo.Ctx, Models.Key("body"), request.Body)
+	AwsGo.Ctx = context.WithValue(AwsGo.Ctx, Models.Key("bucketname"), os.Getenv("BucketName"))
 
 } //EjecutoLambda(ctx context.Context, request events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
 

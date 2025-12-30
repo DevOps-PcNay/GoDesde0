@@ -16,6 +16,8 @@ func InicializoAws() {
 	Ctx = context.TODO()
 
 	// Permite conectarse a AWS
+	// Se deja fija la region a donde nos conectaremos "us-east-1"(Norte de Virginia)
+	//
 	Cfg, err = config.LoadDefaultConfig(Ctx, config.WithDefaultRegion("us-east-1"))
 	if err != nil {
 		panic("Error al cargar la configuracion de AWS: " + err.Error())
